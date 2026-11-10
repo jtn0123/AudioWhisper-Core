@@ -145,3 +145,63 @@ fn camel_case_parts_come_back_as_a_list() {
         aw_strings_free(std::ptr::null_mut());
     }
 }
+
+/// Calls a gate function that takes two strings.
+fn pair<R>(a: &str, b: &str, function: impl FnOnce(*const u8, usize, *const u8, usize) -> R) -> R {
+    function(a.as_ptr(), a.len(), b.as_ptr(), b.len())
+}
+
+#[test]
+fn the_correction_gate_runs_through_the_interface() {
+    // SAFETY: every pointer and length are a live string's, and `ratio` a live double.
+    unsafe {
+        assert!(pair("i cant go", "I can't go.", |a, b, c, d| {
+            aw_correction_allows(a, b, c, d, false)
+        }));
+        assert!(!pair("i cant go", "I can go.", |a, b, c, d| {
+            aw_correction_allows(a, b, c, d, false)
+        }));
+        let subject = "Subject: Go\n\ngo";
+        assert!(pair("go", subject, |a, b, c, d| aw_correction_allows(
+            a, b, c, d, true
+        )));
+        assert!(!pair("go", subject, |a, b, c, d| aw_correction_allows(
+            a, b, c, d, false
+        )));
+
+        let mut ratio = -1.0;
+        assert!(pair("hello", "hallo", |a, b, c, d| {
+            aw_correction_ratio(a, b, c, d, &mut ratio)
+        }));
+        assert_eq!(ratio, 0.2);
+        let long = "x".repeat(250_001);
+        assert!(!pair(&long, "x", |a, b, c, d| aw_correction_ratio(
+            a, b, c, d, &mut ratio
+        )));
+        assert_eq!(ratio, 0.2, "untouched when there is no ratio");
+
+        let distance = pair("hello", "helo", |a, b, c, d| {
+            aw_correction_edit_distance(a, b, c, d)
+        });
+        assert_eq!(distance, 0.2);
+        let merged = pair("hello world", " Hello world\n", |a, b, c, d| {
+            aw_correction_safe_merge(a, b, c, d, 0.25)
+        });
+        assert_eq!(take(merged).as_deref(), Some("Hello world"));
+        let kept = pair("hello world", "", |a, b, c, d| {
+            aw_correction_safe_merge(a, b, c, d, 0.25)
+        });
+        assert_eq!(take(kept).as_deref(), Some("hello world"));
+
+        let output = "Subject: Files\n\nSend Maria the 42 files.";
+        let source = "Send Maria the 42 files.";
+        let rewrite = pair(source, output, |a, b, c, d| {
+            aw_correction_accepted(a, b, c, d, true)
+        });
+        assert_eq!(take(rewrite).as_deref(), Some(output));
+        let cleanup = pair(source, output, |a, b, c, d| {
+            aw_correction_accepted(a, b, c, d, false)
+        });
+        assert_eq!(take(cleanup).as_deref(), Some(source));
+    }
+}

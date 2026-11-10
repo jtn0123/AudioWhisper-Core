@@ -23,6 +23,7 @@ dependencies = [
 name = "awcore"
 version = "0.1.0"
 dependencies = [
+ "correction",
  "transcript",
 ]
 

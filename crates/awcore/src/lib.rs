@@ -1,12 +1,17 @@
-//! The transcript rules behind a C interface, which the Mac app's Swift calls through
-//! `include/awcore.h`. Text crosses as UTF-8 bytes with a length, so a NUL inside it survives.
-//! Every string this library returns is the caller's to free with [`aw_string_free`], every
-//! vocabulary with [`aw_vocabulary_free`] and every list with [`aw_strings_free`].
+//! The transcript rules and the correction gate behind a C interface, which the Mac app's Swift
+//! calls through `include/awcore.h`. Text crosses as UTF-8 bytes with a length, so a NUL inside
+//! it survives. Every string this library returns is the caller's to free with
+//! [`aw_string_free`], every vocabulary with [`aw_vocabulary_free`] and every list with
+//! [`aw_strings_free`].
 
 use std::borrow::Cow;
 use std::ptr;
 
 use transcript::{Options, Replacement, Vocabulary, cursor, formatter, vocabulary};
+
+mod gate;
+
+pub use gate::*;
 
 /// A UTF-8 string this library allocated. `ptr` is null only for "no string".
 #[repr(C)]
@@ -22,7 +27,7 @@ impl AwString {
         len: 0,
     };
 
-    fn new(text: String) -> Self {
+    pub(crate) fn new(text: String) -> Self {
         let bytes = Box::into_raw(text.into_bytes().into_boxed_slice());
         Self {
             ptr: bytes.cast(),
@@ -35,7 +40,7 @@ impl AwString {
 ///
 /// # Safety
 /// `bytes` must point to `len` readable bytes, or be null with `len` 0.
-unsafe fn text<'a>(bytes: *const u8, len: usize) -> Cow<'a, str> {
+pub(crate) unsafe fn text<'a>(bytes: *const u8, len: usize) -> Cow<'a, str> {
     if bytes.is_null() || len == 0 {
         return Cow::Borrowed("");
     }

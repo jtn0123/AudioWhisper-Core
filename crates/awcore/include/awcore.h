@@ -1,4 +1,5 @@
-// AudioWhisper's transcript rules, from the Rust crate `awcore` (crates/awcore/src/lib.rs).
+// AudioWhisper's transcript rules and correction gate, from the Rust crate `awcore`
+// (crates/awcore/src/lib.rs and gate.rs).
 //
 // Text crosses as UTF-8 bytes with a length. Every AwString returned is the caller's to free
 // with aw_string_free, every vocabulary with aw_vocabulary_free and every list with
@@ -54,6 +55,19 @@ void aw_strings_free(AwStrings *strings);
 
 AwString aw_fit(const uint8_t *bytes, size_t len, bool has_preceding, const uint8_t *preceding,
                 size_t preceding_len);
+
+bool aw_correction_allows(const uint8_t *original, size_t original_len, const uint8_t *corrected,
+                          size_t corrected_len, bool allow_framing);
+// False, leaving *ratio as it was, when the comparison can't tell (Swift's nil).
+bool aw_correction_ratio(const uint8_t *original, size_t original_len, const uint8_t *corrected,
+                         size_t corrected_len, double *ratio);
+AwString aw_correction_safe_merge(const uint8_t *original, size_t original_len,
+                                  const uint8_t *corrected, size_t corrected_len,
+                                  double max_change_ratio);
+double aw_correction_edit_distance(const uint8_t *lhs, size_t lhs_len, const uint8_t *rhs,
+                                   size_t rhs_len);
+AwString aw_correction_accepted(const uint8_t *original, size_t original_len,
+                                const uint8_t *output, size_t output_len, bool rewrite);
 
 #ifdef __cplusplus
 }
