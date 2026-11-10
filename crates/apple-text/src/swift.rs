@@ -42,6 +42,17 @@ pub fn equivalent(a: &str, b: &str) -> bool {
     a.nfd().eq(b.nfd())
 }
 
+/// A key that is equal for two strings exactly when Swift's `==` is (their canonical
+/// decomposition), as a `String` or `Character` key of a Swift `Dictionary` or `Set` behaves.
+pub fn canonical(text: &str) -> String {
+    text.nfd().collect()
+}
+
+/// `text.count`: how many `Character`s it has.
+pub fn count(text: &str) -> usize {
+    characters(text).count()
+}
+
 fn first_scalar(character: &str) -> char {
     character.chars().next().unwrap_or('\0')
 }
@@ -126,6 +137,11 @@ pub fn is_foundation_newline(scalar: char) -> bool {
 /// `text.trimmingCharacters(in: .whitespaces)`.
 pub fn trim_whitespaces(text: &str) -> &str {
     text.trim_matches(is_foundation_whitespace)
+}
+
+/// `text.trimmingCharacters(in: .whitespacesAndNewlines)`.
+pub fn trim_whitespaces_and_newlines(text: &str) -> &str {
+    text.trim_matches(|it| is_foundation_whitespace(it) || is_foundation_newline(it))
 }
 
 /// `haystack.range(of: needle)`, Foundation's default (non-literal) search, for a needle that has

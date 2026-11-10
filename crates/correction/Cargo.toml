@@ -1,0 +1,14 @@
+[package]
+name = "correction"
+version = "0.1.0"
+description = "The safety gate a model's correction of a transcript must pass: kept negation, digits, literals and names, no invented greetings or sign-offs, and a bounded amount of change"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+apple-text = { path = "../apple-text" }
+
+[lints]
+workspace = true
