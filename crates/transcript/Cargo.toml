@@ -1,0 +1,16 @@
+[package]
+name = "transcript"
+version = "0.1.0"
+description = "The deterministic text rules between speech recognition and pasting: spoken punctuation, filler words, custom vocabulary, and fitting a transcript to the text before the cursor"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+fancy-regex = "=0.14.0"
+unicode-normalization = "=0.1.24"
+unicode-segmentation = "=1.12.0"
+
+[lints]
+workspace = true
