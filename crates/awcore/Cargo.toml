@@ -1,0 +1,17 @@
+[package]
+name = "awcore"
+version = "0.1.0"
+description = "A C interface to the transcript rules, for the Mac app's Swift"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+transcript = { path = "../transcript" }
+
+[lints]
+workspace = true
