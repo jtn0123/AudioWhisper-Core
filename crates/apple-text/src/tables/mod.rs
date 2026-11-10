@@ -1,4 +1,4 @@
-//! The Unicode data the Mac app's formatter ran on, generated from macOS by
+//! The Unicode data the Mac app's Swift ran on, generated from macOS by
 //! `tools/unicode-tables.sh`: ICU's (behind `NSRegularExpression`) general categories and case
 //! folding, and the Swift runtime's and Foundation's scalar sets. Rust's std and the regex crate
 //! can be on a different Unicode version, so nothing that has to match the Swift is left to them,

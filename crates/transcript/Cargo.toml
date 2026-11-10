@@ -8,9 +8,9 @@ publish.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+apple-text = { path = "../apple-text" }
 fancy-regex = "=0.14.0"
 unicode-normalization = "=0.1.24"
-unicode-segmentation = "=1.12.0"
 
 [lints]
 workspace = true

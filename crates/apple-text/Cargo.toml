@@ -1,0 +1,15 @@
+[package]
+name = "apple-text"
+version = "0.1.0"
+description = "Swift's, Foundation's and ICU's text semantics as macOS ships them, with the Unicode data they run on, for ports of Apple-platform text code that must behave identically"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+unicode-normalization = "=0.1.24"
+unicode-segmentation = "=1.12.0"
+
+[lints]
+workspace = true

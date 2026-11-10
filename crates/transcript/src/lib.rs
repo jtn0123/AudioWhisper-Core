@@ -3,16 +3,17 @@
 //! fitting a transcript to the text before the cursor.
 //!
 //! They began as the Mac app's Swift and keep its exact behaviour, Unicode details included:
-//! [`swift`] reproduces Swift's and Foundation's text semantics, and [`icu`] the ICU regular
-//! expressions behind `NSRegularExpression`.
+//! [`swift`] (from `apple-text`, shared with the other ports) reproduces Swift's and Foundation's
+//! text semantics, and `icu` the ICU regular expressions behind `NSRegularExpression`.
 
 pub mod cursor;
 pub mod formatter;
 mod icu;
 mod phrase;
-pub mod swift;
-mod tables;
 pub mod vocabulary;
+
+pub use apple_text::swift;
+use apple_text::tables;
 
 pub use vocabulary::{Replacement, Vocabulary};
 

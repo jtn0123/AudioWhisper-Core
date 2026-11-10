@@ -17,10 +17,11 @@ crate in a differential test, which also catches a macOS update changing the Uni
 
 | Path | What |
 |---|---|
-| `crates/transcript` | The rules. `formatter`, `vocabulary`, `phrase` and `cursor` are the ports; `swift` and `icu` reproduce Swift's, Foundation's and ICU's text semantics; `tables` holds the Unicode data they need. |
+| `crates/apple-text` | Swift's, Foundation's and ICU's text semantics, shared by the ports: `swift` reproduces Swift's and Foundation's string functions, and `tables` holds the Unicode data, generated from macOS, that they and the ICU matching run on. |
+| `crates/transcript` | The rules. `formatter`, `vocabulary`, `phrase` and `cursor` are the ports; `icu` reproduces `NSRegularExpression`'s matching over fancy-regex. |
 | `crates/awcore` | A C interface (`include/awcore.h`) for the Mac app's Swift, built as a static library. |
 | `tools/build-macos.sh` | Builds a universal (arm64 + x86_64) `libawcore.a`. |
-| `tools/unicode-tables.sh` | Regenerates `crates/transcript/src/tables/*.rs` from macOS's ICU, Swift runtime and Foundation. |
+| `tools/unicode-tables.sh` | Regenerates `crates/apple-text/src/tables/*.rs` from macOS's ICU, Swift runtime and Foundation. |
 
 ## Matching Swift exactly
 

@@ -1,4 +1,4 @@
-"""Writes crates/transcript/src/tables/*.rs from the dumps of icu.c and swift.swift."""
+"""Writes crates/apple-text/src/tables/*.rs from the dumps of icu.c and swift.swift."""
 
 import sys
 from pathlib import Path
