@@ -41,6 +41,25 @@ fn ranges_hold_their_ends_and_nothing_past_them() {
 }
 
 #[test]
+fn regex_sets_follow_icu() {
+    assert!(
+        is_icu_word('_') && is_icu_word('\u{301}') && is_icu_word('\u{200D}') && is_icu_word('٣')
+    );
+    assert!(!is_icu_word('\'') && is_icu_word('Ⅻ') && !is_icu_word('½') && !is_icu_word('\u{600}'));
+    assert!(is_icu_digit('٣') && !is_icu_digit('Ⅻ') && !is_icu_digit('½'));
+    assert!(is_icu_space('\u{85}') && is_icu_space('\u{3000}') && !is_icu_space('\u{200B}'));
+    assert!(is_icu_mark('\u{903}') && !is_icu_mark('a'));
+    assert!(is_boundary_transparent('\u{301}') && is_boundary_transparent('\u{600}'));
+    assert!(!is_boundary_transparent('\u{903}') && !is_boundary_transparent('a'));
+    assert!(is_icu_uppercase_letter('Σ') && !is_icu_uppercase_letter('ǅ'));
+    let closure = |source| case_closure(source).map(Iterator::collect::<String>);
+    assert_eq!(closure("[ap]").as_deref(), Some("AP"));
+    assert_eq!(closure(r"[\p{L}]").as_deref(), Some("\u{345}"));
+    assert_eq!(closure("[+-]").as_deref(), Some(""));
+    assert!(closure("[xyz]").is_none());
+}
+
+#[test]
 fn classes_compile_with_icu_data() {
     let class = icu_class("Lu").unwrap_or_default();
     assert!(class.starts_with(r"[\x{41}-\x{5A}"));

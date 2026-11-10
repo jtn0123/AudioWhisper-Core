@@ -1,12 +1,13 @@
 //! The Unicode data the Mac app's Swift ran on, generated from macOS by
-//! `tools/unicode-tables.sh`: ICU's (behind `NSRegularExpression`) general categories and case
-//! folding, and the Swift runtime's and Foundation's scalar sets. Rust's std and the regex crate
+//! `tools/unicode-tables.sh`: ICU's (behind `NSRegularExpression`) general categories, case
+//! folding and regex sets, and the Swift runtime's and Foundation's scalar sets. Rust's std and the regex crate
 //! can be on a different Unicode version, so nothing that has to match the Swift is left to them,
 //! except the case mappings and the Uppercase, Lowercase and White_Space properties, where Rust
 //! 1.98 (the pinned toolchain) and the Swift runtime agree on every scalar.
 
 mod folding;
 mod icu;
+mod regex;
 mod swift;
 
 use std::cmp::Ordering;
@@ -65,6 +66,47 @@ pub fn is_icu_letter(scalar: char) -> bool {
 /// ICU: general category N.
 pub fn is_icu_number(scalar: char) -> bool {
     contains(icu::NUMBER, scalar)
+}
+
+/// ICU: general category Lu.
+pub fn is_icu_uppercase_letter(scalar: char) -> bool {
+    contains(icu::UPPERCASE_LETTER, scalar)
+}
+
+/// ICU: general category M.
+pub fn is_icu_mark(scalar: char) -> bool {
+    contains(regex::MARK, scalar)
+}
+
+/// ICU's `\w`, which is also what its `\b` counts as a word character: Alphabetic, M, Nd, Pc,
+/// and the zero width (non-)joiners.
+pub fn is_icu_word(scalar: char) -> bool {
+    contains(regex::WORD, scalar)
+}
+
+/// ICU's `\d`: general category Nd.
+pub fn is_icu_digit(scalar: char) -> bool {
+    contains(regex::DIGIT, scalar)
+}
+
+/// ICU's `\s`: White_Space.
+pub fn is_icu_space(scalar: char) -> bool {
+    contains(regex::SPACE, scalar)
+}
+
+/// Whether ICU's `\b` looks through `scalar` to the one before: Grapheme_Extend, or general
+/// category Cf.
+pub fn is_boundary_transparent(scalar: char) -> bool {
+    contains(regex::TRANSPARENT, scalar)
+}
+
+/// The scalars case-insensitive matching adds to the character class written `source`, if the
+/// tables have it (`tools/unicode/icu.c` lists the classes).
+pub fn case_closure(source: &str) -> Option<impl Iterator<Item = char>> {
+    let (_, scalars) = regex::CASE_CLOSURES
+        .iter()
+        .find(|(class, _)| *class == source)?;
+    Some(scalars.iter().filter_map(|&it| char::from_u32(it)))
 }
 
 /// General category Lt.

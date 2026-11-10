@@ -9,6 +9,7 @@ categories = {}
 simple = {}
 full = {}
 closures = {}
+sets = {}
 version = None
 for line in Path(icu_dump).read_text().splitlines():
     kind, *fields = line.split(" ")
@@ -23,6 +24,8 @@ for line in Path(icu_dump).read_text().splitlines():
         full[int(fields[0], 16)] = "".join(map(chr, units)).encode("utf-16", "surrogatepass").decode("utf-16")
     elif kind == "closure":
         closures[fields[0]] = [int(it, 16) for it in fields[1:]]
+    elif kind == "set":
+        sets[fields[0]] = {int(it, 16) for it in fields[1:]}
 
 swift = {}
 for line in Path(swift_dump).read_text().splitlines():
@@ -77,6 +80,27 @@ gc = lambda *wanted: (lambda value: categories.get(value) in wanted)
     + ranges("TITLECASE_LETTER", "General category Lt.", spans(gc(3)))
     + "/// What case-insensitive matching adds to `[\\p{L}\\p{N}_]`.\n"
     + f"pub const WORD_CASE_CLOSURE: &[u32] = &[{', '.join(f'0x{it:X}' for it in closures['word'])}];\n"
+)
+
+closure_rows = "".join(
+    f'    (r"{name}", &[{", ".join(f"0x{it:X}" for it in scalars)}]),\n'
+    for name, scalars in closures.items()
+    if name.startswith("[")
+)
+member = lambda name: (lambda value: value in sets[name])
+(out / "regex.rs").write_text(
+    HEADER.format(source=f"macOS's ICU (Unicode {version})")
+    + ranges("WORD", "ICU's `\\w`, and the word characters of `\\b`.", spans(member("word")))
+    + ranges("DIGIT", "ICU's `\\d`: general category Nd.", spans(member("digit")))
+    + ranges("SPACE", "ICU's `\\s`: White_Space.", spans(member("space")))
+    + ranges("MARK", "General category M.", spans(member("mark")))
+    + ranges(
+        "TRANSPARENT",
+        "What `\\b` looks through: Grapheme_Extend and general category Cf.",
+        spans(member("transparent")),
+    )
+    + "/// What case-insensitive matching adds to a character class, by the class's source text.\n"
+    + f"pub const CASE_CLOSURES: &[(&str, &[u32])] = &[\n{closure_rows}];\n"
 )
 
 simple_pairs = ", ".join(f"0x{a:X}, 0x{b:X}" for a, b in sorted(simple.items()))

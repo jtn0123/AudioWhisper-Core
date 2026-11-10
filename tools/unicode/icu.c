@@ -1,6 +1,6 @@
 // Dumps what ICU (macOS's libicucore, which NSRegularExpression runs on) says about every scalar:
-// its general category, its simple and full case folding, and which scalars case-insensitive
-// matching adds to the formatter's word-character classes.
+// its general category, its simple and full case folding, which scalars case-insensitive matching
+// adds to the character classes the ports use, and the sets behind ICU's \w, \d, \s and \b.
 #include <stdint.h>
 #include <stdio.h>
 
@@ -33,6 +33,23 @@ static void closure(const char *name, const UChar *pattern, int32_t length) {
     printf("\n");
 }
 
+static void set(const char *name, const UChar *pattern, int32_t length) {
+    int error = 0;
+    USet *members = uset_openPattern(pattern, length, &error);
+    if (error > 0) {
+        fprintf(stderr, "bad set %s\n", name);
+        return;
+    }
+    printf("set %s", name);
+    for (int32_t c = 0; c <= 0x10FFFF; c++) {
+        if (uset_contains(members, c)) printf(" %X", c);
+    }
+    printf("\n");
+}
+
+#define SET(name, pattern) set(name, u##pattern, sizeof u##pattern / sizeof(UChar) - 1)
+#define CLOSURE(name, pattern) closure(name, u##pattern, sizeof u##pattern / sizeof(UChar) - 1)
+
 int main(void) {
     uint8_t version[4];
     u_getUnicodeVersion(version);
@@ -63,5 +80,19 @@ int main(void) {
     closure("word", word, sizeof word / sizeof *word - 1);
     const UChar filler[] = u"[\\p{L}\\p{N}_'’\\-]";
     closure("filler", filler, sizeof filler / sizeof *filler - 1);
+    // ICU's regex sets (regexst.cpp): \w and the word characters of \b, \d, \s, and the
+    // scalars \b looks through.
+    SET("word", "[\\p{Alphabetic}\\p{M}\\p{Nd}\\p{Pc}\\u200c\\u200d]");
+    SET("digit", "[\\p{Nd}]");
+    SET("space", "[\\p{WhiteSpace}]");
+    SET("mark", "[\\p{M}]");
+    SET("transparent", "[\\p{Grapheme_Extend}\\p{Cf}]");
+    // The classes the correction gate matches case-insensitively, by their source text.
+    CLOSURE("[\\p{L}]", "[\\p{L}]");
+    CLOSURE("[\\p{L}\\p{N}_]", "[\\p{L}\\p{N}_]");
+    CLOSURE("[+-]", "[+-]");
+    CLOSURE("[.,:]", "[.,:]");
+    CLOSURE("[ap]", "[ap]");
+    CLOSURE("[^\\]]", "[^\\]]");
     return 0;
 }
