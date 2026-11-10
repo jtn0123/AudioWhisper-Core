@@ -8,6 +8,8 @@ out=${1:?usage: tools/build-macos.sh <output directory>}
 # The app's minimum, so the linker doesn't warn that the objects need a newer macOS.
 export MACOSX_DEPLOYMENT_TARGET=14.0
 cd "$root"
+# Cargo builds where CARGO_TARGET_DIR says, if set.
+target_dir=${CARGO_TARGET_DIR:-$root/target}
 mkdir -p "$out"
 library="$out/libawcore.a"
 stale=false
@@ -15,7 +17,7 @@ stale=false
 set --
 for target in aarch64-apple-darwin x86_64-apple-darwin; do
     cargo build --quiet --release --locked -p awcore --target "$target"
-    slice="target/$target/release/libawcore.a"
+    slice="$target_dir/$target/release/libawcore.a"
     [ "$slice" -nt "$library" ] && stale=true
     set -- "$@" "$slice"
 done
